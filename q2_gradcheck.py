@@ -103,8 +103,8 @@ def your_sanity_checks():
 
     l1 = softmax(np.random.randn(3,))
     l2 = softmax(np.random.randn(4, 5))
-    gradcheck_naive(lambda x: score_to_loss_grad(x, l1), softmax(np.random.randn(3,)))    # 1-D test
-    gradcheck_naive(lambda x: score_to_loss_grad(x, l2), softmax(np.random.randn(4, 5)))    # 2-D test
+    gradcheck_naive(lambda x: score_to_loss_grad(x, l1), np.random.randn(3,))    # 1-D test
+    gradcheck_naive(lambda x: score_to_loss_grad(x, l2), np.random.randn(4, 5))    # 2-D test
 
 if __name__ == "__main__":
     sanity_check()
