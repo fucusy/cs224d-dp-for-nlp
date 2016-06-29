@@ -23,17 +23,7 @@ def score_to_loss_grad(score, labels):
     # my gradient, but it's wrong
     grad = labels * (result - 1) / n
 
-    dscores = result
-    classfy_label = np.zeros(n)
-    for i in range(n):
-        for j in range(len(labels[i])):
-            if labels[i][j] == 1:
-                classfy_label[i] = j
-                break
-    for i in range(n):
-        dscores[i][classfy_label[i]] -= 1
+    # the correct gradient
+    grad = (result - labels) / n
 
-    dscores /= n
-
-
-    return cost, dscores
+    return cost, grad

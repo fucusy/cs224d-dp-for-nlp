@@ -2,7 +2,7 @@ import numpy as np
 import random
 from q1_softmax import softmax_loss_grad, softmax
 from q2_sigmoid import sigmoid_loss_grad
-from q2_function import cross_category_loss_grad
+from q2_function import cross_category_loss_grad, score_to_loss_grad
 
 
 # First implement a gradient checker by filling in the following functions
@@ -54,7 +54,7 @@ def gradcheck_naive(f, x):
             print "Gradient check failed."
             print "First gradient error found at index %s" % str(ix)
             print "Your gradient: %f \t Numerical gradient: %f" % (grad[ix], numgrad)
-    
+            return
         it.iternext() # Step to next dimension
 
     print "Gradient check passed!"
@@ -97,6 +97,14 @@ def your_sanity_checks():
     l2 = softmax(np.random.randn(4, 5))
     gradcheck_naive(lambda x: cross_category_loss_grad(x, l1), softmax(np.random.randn(3,)))    # 1-D test
     gradcheck_naive(lambda x: cross_category_loss_grad(x, l2), softmax(np.random.randn(4, 5)))    # 2-D test
+
+
+    print "checking score_to_loss_grad"
+
+    l1 = softmax(np.random.randn(3,))
+    l2 = softmax(np.random.randn(4, 5))
+    gradcheck_naive(lambda x: score_to_loss_grad(x, l1), softmax(np.random.randn(3,)))    # 1-D test
+    gradcheck_naive(lambda x: score_to_loss_grad(x, l2), softmax(np.random.randn(4, 5)))    # 2-D test
 
 if __name__ == "__main__":
     sanity_check()
