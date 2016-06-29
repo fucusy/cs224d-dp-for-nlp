@@ -21,7 +21,13 @@ def score_to_loss_grad(score, labels):
     cost = -1.0 * np.sum(np.log(result) * labels) / n  #scalar
 
     # my gradient, but it's wrong
+    # softmax gradient
+    softmax_grad = (1 - result) * result
+    d_result = (labels / result) * (-1.0 * n)
+    grad = softmax_grad * d_result
     grad = labels * (result - 1) / n
+
+
 
     # the correct gradient
     grad = (result - labels) / n
