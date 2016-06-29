@@ -1,5 +1,5 @@
 # ignore python cache
-*.pac
+*.pyc
 
 # ignore system auto-generated files
 .DS_Store

@@ -4,7 +4,7 @@ import random
 from q1_softmax import softmax_loss_grad
 from q2_sigmoid import sigmoid_loss_grad
 from q2_gradcheck import gradcheck_naive
-from q2_function import cross_category_loss_grad
+from q2_function import score_to_loss_grad
 
 def forward_backward_prop(data, labels, params, dimensions):
     """
@@ -14,6 +14,15 @@ def forward_backward_prop(data, labels, params, dimensions):
     and backward propagation for the gradients for all parameters.
     """
     ### Unpack network parameters (do not modify)
+
+    n = len(data)
+    classfy_label = np.zeros(n)
+    for i in range(n):
+        for j in range(len(labels[i])):
+            if labels[i][j] == 1:
+                classfy_label[i] = j
+                break
+
     ofs = 0
     Dx, H, Dy = (dimensions[0], dimensions[1], dimensions[2])
 
@@ -25,32 +34,59 @@ def forward_backward_prop(data, labels, params, dimensions):
     ofs += H * Dy
     b2 = np.reshape(params[ofs:ofs + Dy], (1, Dy))
 
-    n = len(data)
+    hidden_layer = np.maximum(0, np.dot(data, W1) + b1) # ReLU activation
+    scores = np.dot(hidden_layer, W2) + b2
 
-    layer1 = np.dot(data, W1) + b1   # (n, H)
+    probs, layer2_grad = softmax_loss_grad(scores) # (n, Dy)
 
-    layer1_sigmoid, layer1_grad = sigmoid_loss_grad(layer1) # (n, H)
+    cost, d_score_2 = score_to_loss_grad(scores, labels)
 
-    scores = np.dot(layer1_sigmoid, W2) + b2 # (n, Dy)
 
-    layer2_softmax, layer2_grad = softmax_loss_grad(scores) # (n, Dy)
 
-    # do gradient
-    cost, d_layer2_softmax = cross_category_loss_grad(layer2_softmax, labels)
+    dscores = probs
 
-    d_scores = layer2_grad * d_layer2_softmax # (n, Dy)
+    for i in range(n):
+        dscores[i][classfy_label[i]] -= 1
 
-    gradW2 = layer1_sigmoid.T.dot(d_scores) #(H, Dy)
+    dscores /= n
 
-    gradb2 = d_scores.sum(axis=0) # (1, Dy)
+    dscores = d_score_2 # (n, Dy)
 
-    d_layer1_sigmoid = np.dot(d_scores, W2.T) # (n, H)
+    gradW2 = np.dot(hidden_layer.T, dscores)
+    gradb2 = np.sum(dscores, axis=0)
+    # next backprop into hidden layer
+    dhidden = np.dot(dscores, W2.T)
+    # backprop the ReLU non-linearity
+    dhidden[hidden_layer <= 0] = 0
+    # finally into W,b
 
-    d_layer1 = layer1_grad * d_layer1_sigmoid # (n, H)
+    gradW1 = np.dot(data.T, dhidden)
+    gradb1 = np.sum(dhidden, axis=0)
 
-    gradW1 = np.dot(data.T, d_layer1)  #(Dx, H)
-
-    gradb1 = d_layer1.sum(axis=0) # (1, H)
+    # layer1 = np.dot(data, W1) + b1   # (n, H)
+    #
+    # layer1_sigmoid, layer1_grad = sigmoid_loss_grad(layer1) # (n, H)
+    #
+    # scores = np.dot(layer1_sigmoid, W2) + b2 # (n, Dy)
+    #
+    # layer2_softmax, layer2_grad = softmax_loss_grad(scores) # (n, Dy)
+    #
+    # # do gradient
+    # cost, d_layer2_softmax = cross_category_loss_grad(layer2_softmax, labels)
+    #
+    # d_scores = layer2_grad * d_layer2_softmax # (n, Dy)
+    #
+    # gradW2 = layer1_sigmoid.T.dot(d_scores) #(H, Dy)
+    #
+    # gradb2 = d_scores.sum(axis=0) # (1, Dy)
+    #
+    # d_layer1_sigmoid = np.dot(d_scores, W2.T) # (n, H)
+    #
+    # d_layer1 = layer1_grad * d_layer1_sigmoid # (n, H)
+    #
+    # gradW1 = np.dot(data.T, d_layer1)  #(Dx, H)
+    #
+    # gradb1 = d_layer1.sum(axis=0) # (1, H)
 
     ### Stack gradients (do not modify)
     grad = np.concatenate((gradW1.flatten(), gradb1.flatten(),
