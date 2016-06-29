@@ -1,0 +1,15 @@
+# ignore python cache
+*.pac
+
+# ignore system auto-generated files
+.DS_Store
+
+# ignroe IDE auto-generated files
+.idea
+
+
+# ignore python virtual environment
+.env
+
+# ignore dataset
+cs224d/datasets/stanfordSentimentTreebank
