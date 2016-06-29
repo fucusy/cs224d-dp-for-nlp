@@ -19,6 +19,8 @@ def score_to_loss_grad(score, labels):
         n = score.shape[0]
     result = softmax(score)
     cost = -1.0 * np.sum(np.log(result) * labels) / n  #scalar
+
+    # my gradient, but it's wrong
     grad = labels * (result - 1) / n
 
     dscores = result

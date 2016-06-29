@@ -39,18 +39,7 @@ def forward_backward_prop(data, labels, params, dimensions):
 
     probs, layer2_grad = softmax_loss_grad(scores) # (n, Dy)
 
-    cost, d_score_2 = score_to_loss_grad(scores, labels)
-
-
-
-    dscores = probs
-
-    for i in range(n):
-        dscores[i][classfy_label[i]] -= 1
-
-    dscores /= n
-
-    dscores = d_score_2 # (n, Dy)
+    cost, dscores = score_to_loss_grad(scores, labels)
 
     gradW2 = np.dot(hidden_layer.T, dscores)
     gradb2 = np.sum(dscores, axis=0)
