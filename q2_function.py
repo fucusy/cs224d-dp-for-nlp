@@ -1,6 +1,6 @@
 __author__ = 'fucus'
 import numpy as np
-from q1_softmax import softmax
+from q1_softmax import softmax_loss_grad
 
 def cross_category_loss_grad(pred, labels):
     if len(pred.shape) <= 1:
@@ -17,19 +17,14 @@ def score_to_loss_grad(score, labels):
         n = 1
     else:
         n = score.shape[0]
-    result = softmax(score)
-    cost = -1.0 * np.sum(np.log(result) * labels) / n  #scalar
-
-    # my gradient, but it's wrong
-    # softmax gradient
-    softmax_grad = (1 - result) * result
-    d_result = (labels / result) * (-1.0 * n)
-    grad = softmax_grad * d_result
-    grad = labels * (result - 1) / n
-
-
+    softmax_result, softmax_grad = softmax_loss_grad(score)
+    cost, cross_grad = cross_category_loss_grad(softmax_result, labels)
 
     # the correct gradient
-    grad = (result - labels) / n
+    grad = (softmax_result - labels) / n
+
+
+    # my gradient
+    grad = cross_grad * softmax_grad
 
     return cost, grad
