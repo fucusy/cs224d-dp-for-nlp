@@ -1,5 +1,6 @@
 import numpy as np
 import random
+from q2_gradcheck_fuc import gradcheck_naive
 
 def softmax(x):
     """
@@ -19,36 +20,36 @@ def softmax(x):
     You must implement the optimization in problem 1(a) of the
     written assignment!
     """
-    shape = x.shape
-
-    if len(shape) == 0:
-        return np.array(1)
-    elif len(shape) == 1:
-        min = np.min(x)
-        new_x = np.zeros(x.shape)
-        for i in range(len(x)):
-            new_x[i] = x[i] - min
-        exp_x = []
-        for num in new_x:
-            exp_x.append(np.exp(num))
-        exp_x = np.array(exp_x)
-        result = []
-        sum_exp_x = np.sum(exp_x)
-        for num in exp_x:
-            result.append(num * 1.0 / sum_exp_x)
-        result = np.array(result)
-        return result
-    else:
-        result = []
-        for num in x:
-            result.append(softmax(num))
-        result = np.array(result)
-        return result
+    return softmax_loss_grad(x)[0]
 
 def softmax_loss_grad(x):
-    result = softmax(x)
-    grad = result * (1 - result)
-    return result, grad
+    shape = x.shape
+    if len(shape) == 0:
+        return np.array(1), np.array(0)
+    elif len(shape) == 1:
+        n = shape[0]
+        new_x = x - np.min(x)
+        exp_x = np.exp(new_x)
+        result = exp_x / np.sum(exp_x)
+        grad = np.zeros((n, n))
+        i_equal_j = result * (1 - result)
+        for i in range(n):
+            for j in range(n):
+                if j == i:
+                    grad[i][j] = i_equal_j[i]
+                else:
+                    grad[i][j] = -1.0 * result[i] * result[j]
+        return result, grad
+    else:
+        result = []
+        grad = []
+        for num in x:
+            tmp_result, tmp_grad = softmax_loss_grad(num)
+            result.append(tmp_result)
+            grad.append(tmp_grad)
+        result = np.array(result)
+        grad = np.array(grad)
+        return result, grad
 
 
 
@@ -87,6 +88,22 @@ def test_softmax():
     ### YOUR CODE HERE
     ### END YOUR CODE
 
+
+def your_sanity_checks():
+    """
+    Use this space add any additional sanity checks by running:
+        python q2_gradcheck.py
+    This function will not be called by the autograder, nor will
+    your additional tests be graded.
+    """
+    print "Running your sanity checks..."
+
+    print "checking softmax_loss_grad"
+    gradcheck_naive(softmax_loss_grad, np.array(123.456))      # scalar test
+    gradcheck_naive(softmax_loss_grad, np.random.randn(3,))    # 1-D test
+    gradcheck_naive(softmax_loss_grad, np.random.randn(4,5))   # 2-D test
+
+
 if __name__ == "__main__":
     test_softmax_basic()
-    test_softmax()
+    your_sanity_checks()
